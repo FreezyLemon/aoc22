@@ -7,17 +7,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let inv_list = std::fs::read_to_string(input_file)?;
         let elf_inv = inv_list.split("\n\n");
 
-        let highest_calories = elf_inv
+        let mut sums_per_inv = elf_inv
             .map(|str| {
                 str
                     .split("\n")
                     .map(|line| line.parse::<usize>().expect("can parse as integer"))
                     .sum::<usize>()
             })
-            .max()
-            .expect("inventory contains entries");
+            .collect::<Vec<_>>();
 
-        println!("result: {}", highest_calories);
+        sums_per_inv.sort();
+        sums_per_inv.reverse(); // inefficient but i'm lazy
+
+        let result = sums_per_inv[0] + sums_per_inv[1] + sums_per_inv[2];
+        println!("result: {result}");
     } else {
         eprintln!("needs one argument");
         exit(-1);

@@ -1,23 +1,16 @@
-use std::{process::exit};
+mod input;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = std::env::args().skip(1);
+    let guide = crate::input::get_input()?;
+    
+    let total_score = guide
+        .split("\n")
+        .map(|line| line.split_once(' ').expect("line has space"))
+        .map(|(a, b)| (Choice::from(a), GameResult::from(b)))
+        .map(|(a, b)| a.play(b))
+        .sum::<usize>();
 
-    if let Some(input_file) = args.next() {
-        let guide = std::fs::read_to_string(input_file)?;
-        
-        let total_score = guide
-            .split("\n")
-            .map(|line| line.split_once(' ').expect("line has space"))
-            .map(|(a, b)| (Choice::from(a), GameResult::from(b)))
-            .map(|(a, b)| a.play(b))
-            .sum::<usize>();
-
-        println!("total score: {total_score}");
-    } else {
-        eprintln!("needs one argument");
-        exit(-1);
-    }
+    println!("total score: {total_score}");
 
     Ok(())
 }

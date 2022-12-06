@@ -1,35 +1,28 @@
-use std::{process::exit};
+mod input;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = std::env::args().skip(1);
+    let inventory = crate::input::get_input()?;
 
-    if let Some(input_file) = args.next() {
-        let inventory = std::fs::read_to_string(input_file)?;
+    let lines = inventory.split("\n");
+    let iter = ThreeLineIter { split: lines };
+    
+    let a: i32 = iter.map(|lines| {
+            lines[0]
+                .chars()
+                .filter(|c| lines[1].contains(*c))
+                .find(|c| lines[2].contains(*c))
+                .expect("can find shared item type")
+        })
+        .map(|c| {
+            if c.is_lowercase() {
+                c as i32 - ('a' as i32) + 1
+            } else {
+                c as i32 - ('A' as i32) + 27
+            }
+        })
+        .sum();
 
-        let lines = inventory.split("\n");
-        let iter = ThreeLineIter { split: lines };
-        
-        let a: i32 = iter.map(|lines| {
-                lines[0]
-                    .chars()
-                    .filter(|c| lines[1].contains(*c))
-                    .find(|c| lines[2].contains(*c))
-                    .expect("can find shared item type")
-            })
-            .map(|c| {
-                if c.is_lowercase() {
-                    c as i32 - ('a' as i32) + 1
-                } else {
-                    c as i32 - ('A' as i32) + 27
-                }
-            })
-            .sum();
-
-        println!("result {a}");
-    } else {
-        eprintln!("needs one argument");
-        exit(-1);
-    }
+    println!("result {a}");
 
     Ok(())
 }

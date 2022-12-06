@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{process::exit};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args().skip(1);
@@ -9,8 +9,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let total_score = guide
             .split("\n")
             .map(|line| line.split_once(' ').expect("line has space"))
-            .map(|(a, b)| (Choice::from(a), Choice::from(b)))
-            .map(|(a, b)| b.play(a))
+            .map(|(a, b)| (Choice::from(a), GameResult::from(b)))
+            .map(|(a, b)| a.play(b))
             .sum::<usize>();
 
         println!("total score: {total_score}");
@@ -29,18 +29,25 @@ enum Choice {
     Scissors = 3,
 }
 
-impl Choice {
-    fn play(self, other: Choice) -> usize {
-        let delta = self.clone() as isize - other as isize;
-        let result = if delta == 0 {
-            3 // draw
-        } else if (delta + 3) % 3 == 1 {
-            6 // win
-        } else {
-            0 // loss
-        };
+#[derive(Clone)]
+enum GameResult {
+    Loss = 0,
+    Draw = 1,
+    Win = 2,
+}
 
-        result + self as usize
+impl Choice {
+    fn play(self, result: GameResult) -> usize {
+        let result_score = result.clone() as usize * 3;
+        let mut other_choice = self as isize + result as isize - 1;
+        if other_choice == 0 {
+            other_choice = 3;
+        } else if other_choice > 3 {
+            other_choice %= 3;
+        }
+
+        result_score + other_choice as usize
+        // (((self as isize + result as isize - 2) % 3) + 1) as usize
     }
 }
 
@@ -53,9 +60,25 @@ impl From<&str> for Choice {
         let c = s.chars().next().unwrap();
 
         match c {
-            'A' | 'X' => Self::Rock,
-            'B' | 'Y' => Self::Paper,
-            'C' | 'Z' => Self::Scissors,
+            'A' => Self::Rock,
+            'B' => Self::Paper,
+            'C' => Self::Scissors,
+            _ => unimplemented!(),
+        }
+    }
+}
+
+impl From<&str> for GameResult {
+    fn from(s: &str) -> Self {
+        if s.len() != 1 {
+            panic!("must be of length 1");
+        }
+
+        let c = s.chars().next().unwrap();
+        match c {
+            'X' => GameResult::Loss,
+            'Y' => GameResult::Draw,
+            'Z' => GameResult::Win,
             _ => unimplemented!(),
         }
     }

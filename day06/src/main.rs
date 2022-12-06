@@ -23,8 +23,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             break;
         }
 
-        buf.push_back(c);
         buf.pop_front();
+        buf.push_back(c);
     }
 
     println!("result: {result}");

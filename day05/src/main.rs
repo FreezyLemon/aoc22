@@ -30,15 +30,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|l| Instruction::parse(l));
 
     for inst in instructions {
-        for _ in 0..inst.count {
-            let val = {
-                let stack = &mut stacks[inst.from - 1];
-                stack.pop().expect("Stack has elements")
-            };
+        let mut vals = {
+            let stack = &mut stacks[inst.from - 1];
+            let idx = stack.len() - inst.count;
+            stack.split_off(idx)
+        };
 
-            let to = &mut stacks[inst.to - 1];
-            to.push(val)
-        }
+        let to = &mut stacks[inst.to - 1];
+        to.append(&mut vals);
     }
 
     let result = stacks

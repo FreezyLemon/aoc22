@@ -18,8 +18,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let r_s = r_0.parse::<usize>().unwrap();
                 let r_e = r_1.parse::<usize>().unwrap();
 
-                l_s >= r_s && l_e <= r_e ||
-                r_s >= l_s && r_e <= l_e
+                let mut l = l_s..=l_e;
+                let r = r_s..=r_e;
+                l.any(|i| r.contains(&i))
             })
             .count();
         

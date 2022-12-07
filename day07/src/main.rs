@@ -56,12 +56,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         dir_sizes.insert(dir, subdir_file_sizes);
     }
 
-    let result: usize = dir_sizes
-        .into_values()
-        .filter(|&size| size <= 100000)
-        .sum();
+    // let result: usize = dir_sizes
+    //     .into_values()
+    //     .filter(|&size| size <= 100000)
+    //     .sum();
 
-    println!("{}", result);
+    // println!("{}", result);
+
+    let mut dir_sizes = dir_sizes.into_values().collect::<Vec<_>>();
+    dir_sizes.sort();
+
+    let total_space = 70_000_000;
+    let needed_space = 30_000_000;
+    
+    let free_space = total_space - dir_sizes.last().unwrap();
+    let space_to_delete = needed_space - free_space;
+    let result = dir_sizes.into_iter().find(|&s| s >= space_to_delete).unwrap();
+    println!("{result}");
 
     Ok(())
 }

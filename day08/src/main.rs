@@ -4,21 +4,21 @@ fn main() {
     let content = crate::input::get_input().unwrap();
     let width = content.find('\n').unwrap();
     let height = content.split('\n').count();
-    println!("{width}x{height}");
+    // println!("{width}x{height}");
 
     let map = TreeMap::new(&content, width, height);
 
-    // trees at the edge are always visible
-    let mut visible_trees = 2 * (width + height) - 4;
+    let mut highest_score = 0;
     for y in 1..height - 1 {
         for x in 1..width - 1 {
-            if map.visible_at(x, y) {
-                visible_trees += 1;
+            let score = map.scenic_score_at(x, y);
+            if score > highest_score {
+                highest_score = score;
             }
         }
     }
 
-    println!("result: {visible_trees}");
+    println!("result: {highest_score}");
 }
 
 type Tree = u8;
@@ -51,12 +51,14 @@ impl TreeMap {
         self.trees[x + y * self.width]
     }
 
-    fn visible_at(&self, x: usize, y: usize) -> bool {
+    fn scenic_score_at(&self, x: usize, y: usize) -> usize {
         let h = self.height_at(x, y);
 
-        (0..x).all(|dx| self.height_at(dx, y) < h) ||
-        (x+1..self.width).all(|dx| self.height_at(dx, y) < h) ||
-        (0..y).all(|dy| self.height_at(x, dy) < h) ||
-        (y+1..self.height).all(|dy| self.height_at(x, dy) < h)
+        let to_left = 1 + (1..x).rev().take_while(|&dx| self.height_at(dx, y) < h).count();
+        let to_right = 1 + (x+1..self.width - 1).take_while(|&dx| self.height_at(dx, y) < h).count();
+        let up = 1 + (1..y).rev().take_while(|&dy| self.height_at(x, dy) < h).count();
+        let down = 1 + (y+1..self.height - 1).take_while(|&dy| self.height_at(x, dy) < h).count();
+
+        to_left * to_right * up * down
     }
 }

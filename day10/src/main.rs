@@ -2,11 +2,10 @@ mod input;
 
 fn main() {
     let content = crate::input::get_input().unwrap();
+    let line_length = 40;
+    let height_in_lines = 6;
 
-    let relevant_cycles = [19, 59, 99, 139, 179, 219];
-    let mut result = 0;
-
-    content
+    let add_list = content
         .split('\n')
         .flat_map(|l| {
             // op includes a leading space
@@ -17,16 +16,27 @@ fn main() {
             } else {
                 vec![0]
             }
-        })
-        .take(*relevant_cycles.last().unwrap() + 1)
-        .enumerate()
-        .fold(1, |acc, (idx, elem)| {
-            if relevant_cycles.contains(&idx) {
-                result += (idx + 1) * acc as usize;
-            }
-
-            acc + elem
         });
-    
-    println!("result {result}");
+
+    let mut acc = 1;
+    let mut pic = Vec::new();
+    for (idx, dx) in add_list.enumerate() {
+        let curr_x = (idx % line_length) as isize;
+        if (acc - 1..=acc + 1).contains(&curr_x) {
+            pic.push('#');
+        } else {
+            pic.push('.');
+        }
+
+        acc += dx as isize;
+    }
+
+    let total_len = line_length * height_in_lines;
+    for eol in (line_length..total_len).step_by(line_length + 1) {
+        pic.insert(eol, '\n');
+    }
+
+    let pic = pic.iter().collect::<String>();
+    println!("result:");
+    println!("{pic}");
 }

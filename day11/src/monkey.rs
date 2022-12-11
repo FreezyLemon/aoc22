@@ -5,7 +5,6 @@ type MonkeyIndex = usize;
 type WorryLevel = usize;
 
 pub struct Monkey {
-    _idx: MonkeyIndex,
     inspected_count: usize,
     items: VecDeque<WorryLevel>,
     on_inspect: Box<dyn Fn(WorryLevel) -> WorryLevel>,
@@ -15,7 +14,7 @@ pub struct Monkey {
 }
 
 impl Monkey {
-    pub fn throw_items(&mut self, reduce_worries: usize) -> Vec<(usize, usize)> {
+    pub fn throw_items(&mut self, reduce_worries: usize) -> Vec<(MonkeyIndex, WorryLevel)> {
         self.inspected_count += self.items.len();
         let mut result = Vec::with_capacity(self.items.len());
 
@@ -70,18 +69,18 @@ impl FromStr for Monkey {
     type Err = Box<dyn std::error::Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut lines = s.split('\n');
+        let lines = &mut s.split('\n');
 
-        let idx = take_line_validated(lines.next(), Line::Id, "Monkey ")?;
-        let idx: MonkeyIndex = idx.trim_end_matches(':').parse()?;
+        let idx = take_line_validated(lines, Line::Id, "Monkey ")?;
+        let _idx: MonkeyIndex = idx.trim_end_matches(':').parse()?; // unused
 
-        let items = take_line_validated(lines.next(), Line::Items, "Starting items: ")?;
+        let items = take_line_validated(lines, Line::Items, "Starting items: ")?;
         let items: VecDeque<WorryLevel> = items
             .split(',')
             .map(|t| t.trim().parse().expect("can be parsed"))
             .collect();
 
-        let op = take_line_validated(lines.next(), Line::Operation, "Operation: ")?;
+        let op = take_line_validated(lines, Line::Operation, "Operation: ")?;
         assert!(op.starts_with("new = "));
         let (_, op) = ok!(op.split_once('='), InvalidLine, Operation);
 
@@ -92,14 +91,12 @@ impl FromStr for Monkey {
             return parse_error!(InvalidLine, Operation);
         }
 
-        let op = ok!(tokens.next(), InvalidLine, Operation)
-            .to_string(); // needed to be moved into a closure
+        let op = ok!(tokens.next(), InvalidLine, Operation).to_string(); // needed to be moved into a closure
 
-        let rhs = ok!(tokens.next(), InvalidLine, Operation)
-            .parse::<usize>();
+        let rhs = ok!(tokens.next(), InvalidLine, Operation).parse();
 
         let op: Box<dyn Fn(WorryLevel) -> WorryLevel> = Box::new(move |x: WorryLevel| {
-            let rhs = match rhs {
+            let rhs: usize = match rhs {
                 Ok(parsed) => parsed,
                 Err(_) => x, // can't be parsed -> "old"
             };
@@ -115,14 +112,13 @@ impl FromStr for Monkey {
             return parse_error!(InvalidLine, Operation);
         }
 
-        let div_by = take_line_validated(lines.next(), Line::Test, "Test: divisible by ")?;
+        let div_by = take_line_validated(lines, Line::Test, "Test: divisible by ")?;
         let div_by: usize = div_by.parse()?;
 
-        let if_true = take_line_validated(lines.next(), Line::IfTrue, "If true: throw to monkey ")?;
+        let if_true = take_line_validated(lines, Line::IfTrue, "If true: throw to monkey ")?;
         let if_true: MonkeyIndex = if_true.parse()?;
 
-        let if_false =
-            take_line_validated(lines.next(), Line::IfFalse, "If false: throw to monkey ")?;
+        let if_false = take_line_validated(lines, Line::IfFalse, "If false: throw to monkey ")?;
         let if_false: MonkeyIndex = if_false.parse()?;
 
         if lines.next().is_some() {
@@ -130,7 +126,6 @@ impl FromStr for Monkey {
         }
 
         Ok(Monkey {
-            _idx: idx,
             inspected_count: 0,
             items,
             on_inspect: op,
@@ -141,12 +136,15 @@ impl FromStr for Monkey {
     }
 }
 
-fn take_line_validated<'a>(
-    line: Option<&'a str>,
+fn take_line_validated<'a, T>(
+    lines: &mut T,
+    // line: Option<&'a str>,
     line_id: Line,
     starts_with: &str,
-) -> Result<&'a str, ParseMonkeyError> {
-    let (empty, line) = line
+) -> Result<&'a str, ParseMonkeyError>
+where T: Iterator<Item = &'a str> {
+    let (empty, line) = lines
+        .next()
         .ok_or(ParseMonkeyError::MissingLine(line_id))?
         .split_once(starts_with)
         .ok_or(ParseMonkeyError::InvalidLine(line_id))?;

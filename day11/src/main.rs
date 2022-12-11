@@ -21,7 +21,7 @@ fn main() {
         for m in 0..monkeys.len() {
             let monkey = &mut monkeys[m];
             let thrown_items = monkey.throw_items(lcm);
-            
+
             for (to, item) in thrown_items {
                 monkeys[to].catch_item(item);
             }
@@ -48,7 +48,8 @@ fn gcd(a: usize, b: usize) -> usize {
         a
     } else if a > b {
         gcd(a % b, b)
-    } else { // if a < b
+    } else {
+        // if a < b
         gcd(a, b % a)
     }
 }

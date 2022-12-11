@@ -2,10 +2,13 @@ mod input;
 
 fn main() {
     let content = crate::input::get_input().unwrap();
-    let line_length = 40;
-    let height_in_lines = 6;
+    const LINE_LEN: usize = 40;
+    const LINES: usize = 6;
+    const TOTAL_LEN: usize = LINE_LEN * LINES;
+    let mut acc = 1;
+    let mut pic = Vec::new();
 
-    let add_list = content
+    content
         .split('\n')
         .flat_map(|l| {
             // op includes a leading space
@@ -16,27 +19,24 @@ fn main() {
             } else {
                 vec![0]
             }
+        })
+        .enumerate()
+        .for_each(|(idx, dx)| {
+            let curr_x = (idx % LINE_LEN) as isize;
+            if (acc - 1..=acc + 1).contains(&curr_x) {
+                pic.push('#');
+            } else {
+                pic.push('.');
+            }
+
+            acc += dx as isize;
         });
 
-    let mut acc = 1;
-    let mut pic = Vec::new();
-    for (idx, dx) in add_list.enumerate() {
-        let curr_x = (idx % line_length) as isize;
-        if (acc - 1..=acc + 1).contains(&curr_x) {
-            pic.push('#');
-        } else {
-            pic.push('.');
-        }
-
-        acc += dx as isize;
-    }
-
-    let total_len = line_length * height_in_lines;
-    for eol in (line_length..total_len).step_by(line_length + 1) {
+    for eol in (LINE_LEN..TOTAL_LEN).step_by(LINE_LEN + 1) {
         pic.insert(eol, '\n');
     }
 
-    let pic = pic.iter().collect::<String>();
+    let pic: String = pic.into_iter().collect();
     println!("result:");
     println!("{pic}");
 }

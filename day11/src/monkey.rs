@@ -15,12 +15,12 @@ pub struct Monkey {
 }
 
 impl Monkey {
-    pub fn throw_items(&mut self) -> Vec<(usize, usize)> {
+    pub fn throw_items(&mut self, reduce_worries: usize) -> Vec<(usize, usize)> {
         self.inspected_count += self.items.len();
         let mut result = Vec::with_capacity(self.items.len());
 
         while let Some(item) = self.items.pop_back() {
-            let item = (self.on_inspect)(item) / 3;
+            let item = (self.on_inspect)(item) % reduce_worries;
             let target = self.choose_target(item);
             result.push((target, item));
         }
@@ -42,6 +42,10 @@ impl Monkey {
 
     pub fn get_count(&self) -> usize {
         self.inspected_count
+    }
+
+    pub fn get_div(&self) -> usize {
+        self.div_by
     }
 }
 

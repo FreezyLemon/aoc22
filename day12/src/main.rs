@@ -1,4 +1,4 @@
-use std::{collections::HashMap, cell::RefCell, thread::JoinHandle};
+use std::{collections::HashMap, cell::RefCell};
 
 mod input;
 
@@ -56,23 +56,16 @@ fn main() {
 
     let end_pos = end_pos.expect("can find end");
 
-    let handles: Vec<JoinHandle<Option<usize>>> = nodes
+    let fewest_steps = nodes
         .iter()
         .filter(|(_, n)| n.elev == 0)
         .map(|(&pos, _)| pos)
-        .map(|p| {
+        .filter_map(|p| {
             let nodes = nodes.clone();
-            std::thread::spawn(move || {
-                let start = vec![p];
-                let visited = Vec::with_capacity(nodes.len());
-                shortest_path_to(0, nodes, start, visited, end_pos)
-            })
+            let start = vec![p];
+            let visited = Vec::with_capacity(nodes.len());
+            shortest_path_to(0, nodes, start, visited, end_pos)
         })
-        .collect();
-    
-    let fewest_steps = handles
-        .into_iter()
-        .filter_map(|h| h.join().unwrap())
         .min()
         .unwrap();
 

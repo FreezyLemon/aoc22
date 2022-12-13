@@ -1,4 +1,4 @@
-use std::{collections::HashMap, cell::RefCell};
+use std::{collections::HashMap, cell::RefCell, thread::JoinHandle};
 
 mod input;
 
@@ -45,26 +45,38 @@ fn main() {
     }
 
     let in_lines: Vec<&str> = content.split('\n').collect();
-    let mut start_pos = None;
     let mut end_pos = None;
 
     for y in 0..in_lines.len() {
         let line = in_lines[y];
-        if let Some(x) = line.find(START_CHAR) {
-            start_pos = Some(Point { x, y });
-        }
         if let Some(x) = line.find(END_CHAR) {
             end_pos = Some(Point { x, y });
         }
     }
 
-    let start_pos = start_pos.expect("can find start");
     let end_pos = end_pos.expect("can find end");
 
-    let start = vec![start_pos];
-    let visited = Vec::with_capacity(nodes.len());
-    let steps = shortest_path_to(0, nodes, start, visited, end_pos);
-    println!("result: {steps}");
+    let handles: Vec<JoinHandle<Option<usize>>> = nodes
+        .iter()
+        .filter(|(_, n)| n.elev == 0)
+        .map(|(&pos, _)| pos)
+        .map(|p| {
+            let nodes = nodes.clone();
+            std::thread::spawn(move || {
+                let start = vec![p];
+                let visited = Vec::with_capacity(nodes.len());
+                shortest_path_to(0, nodes, start, visited, end_pos)
+            })
+        })
+        .collect();
+    
+    let fewest_steps = handles
+        .into_iter()
+        .filter_map(|h| h.join().unwrap())
+        .min()
+        .unwrap();
+
+    println!("result: {fewest_steps}");
 }
 
 fn shortest_path_to(
@@ -73,12 +85,16 @@ fn shortest_path_to(
     to_visit: Vec<Point>,
     mut visited: Vec<Point>,
     end_pos: Point,
-) -> usize {
+) -> Option<usize> {
     let mut visit_next = Vec::new();
-    
+
+    if to_visit.is_empty() {
+        return None;
+    }
+
     for pos in to_visit {
         if pos == end_pos {
-            return steps;
+            return Some(steps);
         }
 
         visited.push(pos);
@@ -94,6 +110,7 @@ fn shortest_path_to(
     shortest_path_to(steps + 1, all_nodes, visit_next, visited, end_pos)
 }
 
+#[derive(Clone)]
 struct Node {
     // pos: Point,
     elev: u8,

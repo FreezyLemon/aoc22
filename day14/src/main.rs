@@ -10,7 +10,7 @@ fn main() {
         .flat_map(parse_to_rocks)
         .collect();
     
-    let max_depth = rocks
+    let max_depth = 2 + rocks
         .iter()
         .map(|r| r.1)
         .max()
@@ -25,12 +25,17 @@ fn main() {
 fn simulate_sand(mut rocks: HashSet<Rock>, max_depth: u32) -> usize {
     let mut units = 0;
 
-    'outer: loop {
+    loop {
         let mut sand = (500, 0);
+        if let Some(_) = rocks.get(&sand) {
+            break;
+        }
 
         loop {
-            if sand.1 >= max_depth {
-                break 'outer units;
+            if sand.1 + 1 == max_depth {
+                rocks.insert(sand);
+                units += 1;
+                break;
             }
 
             sand.1 += 1;
@@ -56,6 +61,8 @@ fn simulate_sand(mut rocks: HashSet<Rock>, max_depth: u32) -> usize {
             break;
         }
     }
+
+    units
 }
 
 fn parse_to_rocks(s: &str) -> Vec<Rock> {

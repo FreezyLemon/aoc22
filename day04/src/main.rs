@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let pairs = crate::input::get_input()?;
+    let pairs = get_input()?;
 
     let a = pairs
         .split('\n')

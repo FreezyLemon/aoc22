@@ -1,10 +1,10 @@
 mod element;
-mod input;
-
 use element::Element;
 
+use get_input::*;
+
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
     let mut elements: Vec<Element> = content
         .split("\n")
         .filter(|l| !l.is_empty())

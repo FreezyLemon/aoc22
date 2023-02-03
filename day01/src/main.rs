@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let inv_list = crate::input::get_input()?;
+    let inv_list = get_input()?;
     let elf_inv = inv_list.split("\n\n");
 
     let mut sums_per_inv = elf_inv

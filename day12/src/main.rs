@@ -1,6 +1,6 @@
 use std::{collections::HashMap, cell::RefCell};
 
-mod input;
+use get_input::*;
 
 const START_CHAR: char = 'S';
 const END_CHAR: char = 'E';
@@ -8,7 +8,7 @@ const LOWEST_ELEV: char = 'a';
 const HIGHEST_ELEV: char = 'z';
 
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
     let nodes: HashMap<Point, Node> = content
         .split('\n')
         .enumerate()

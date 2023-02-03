@@ -1,11 +1,11 @@
 use std::{collections::{HashMap, VecDeque}, fmt::Display};
 
-mod input;
+use get_input::*;
 
 const START_VALVE: &str = "AA";
 
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
 
     let mut valves: HashMap<&str, Valve> = content
         .split('\n')
@@ -33,13 +33,15 @@ fn main() {
         })
         .collect();
 
-    let zeroes: Vec<&str> = valves.iter().filter_map(|(&k, v)| {
+    let mut zeroes: Vec<&str> = valves.iter().filter_map(|(&k, v)| {
         if v.flow_rate == 0 && k != "AA" {
             Some(k)
         } else {
             None
         }
     }).collect();
+
+    zeroes.sort();
 
     for zk in zeroes {
         let zv = valves.remove(zk).unwrap();
@@ -73,20 +75,23 @@ fn main() {
 }
 
 fn path_search(curr_path: Path, valves: &HashMap<&str, Valve>) -> usize {
-    println!("{curr_path}");
     if valves.len() == curr_path.open_valves.len() {
+        println!("{curr_path}");
         return curr_path.total_flow;
     }
 
     let mut keys: Vec<&&str> = valves.keys().collect();
     keys.sort();
 
-    let filtered_paths = keys.into_iter()
+    let shortest_paths = keys.into_iter()
         .filter(|k| !curr_path.open_valves.contains(k))
         .map(|k| get_shortest_path(curr_path.curr_valve, k, valves))
+        .collect::<Vec<_>>();
+    
+    let filtered_paths = shortest_paths.iter()
         .filter(|(_, dist)| dist + 1 <= curr_path.remaining_mins)
         .filter(|(path, _)| path.iter().rev().skip(1).all(|v| curr_path.open_valves.contains(v)))
-        .map(|(path, dist)| (&valves[path.last().unwrap()], dist))
+        // .map(|(path, dist)| (valves.get(path.last().unwrap()).unwrap(), dist))
         .collect::<Vec<_>>();
 
     let mut max_flow = curr_path.total_flow;
@@ -94,12 +99,14 @@ fn path_search(curr_path: Path, valves: &HashMap<&str, Valve>) -> usize {
     // Only go to valves that are directly reachable
     // without walking past a closed valve
     for (v, dist) in filtered_paths {
+        let next_k = v.last().unwrap().clone();
+        let next_v = valves.get(next_k).unwrap();
         let mut subpath = curr_path.clone();
-        subpath.visited.push(v.key);
-        subpath.open_valves.push(v.key);
+        subpath.visited.extend(v);
+        subpath.open_valves.push(next_k);
         subpath.remaining_mins -= dist + 1;
-        subpath.curr_valve = v.key;
-        subpath.total_flow += v.flow_rate * subpath.remaining_mins;
+        subpath.curr_valve = next_k;
+        subpath.total_flow += next_v.flow_rate * subpath.remaining_mins;
 
         let subpath_flow = path_search(subpath, valves);
         if subpath_flow > max_flow {
@@ -111,7 +118,10 @@ fn path_search(curr_path: Path, valves: &HashMap<&str, Valve>) -> usize {
 }
 
 fn get_shortest_path<'a>(from: &str, to: &str, valves: &'a HashMap<&'a str, Valve>) -> (Vec<&'a str>, usize) {
-    let mut paths: HashMap<&str, (Vec<&str>, usize)> = valves.keys().map(|&k| (k, (vec![], usize::MAX))).collect();
+    let mut keys: Vec<&&str> = valves.keys().collect();
+    keys.sort();
+
+    let mut paths: HashMap<&str, (Vec<&str>, usize)> = keys.into_iter().map(|&k| (k, (vec![], usize::MAX))).collect();
     let mut next = VecDeque::with_capacity(valves.len());
     let mut visited = Vec::with_capacity(valves.len());
 
@@ -130,7 +140,15 @@ fn get_shortest_path<'a>(from: &str, to: &str, valves: &'a HashMap<&'a str, Valv
                 continue;
             }
 
-            if curr_dist + dist < paths[k].1 {
+            let mut modify_path = curr_dist + dist < paths[k].1;
+            if curr_dist + dist == paths[k].1 {
+                let last_valve = valves.get(curr_path.last().unwrap()).unwrap();
+                if v.flow_rate > last_valve.flow_rate {
+                    modify_path = true;
+                }
+            }
+
+            if modify_path {
                 let (p, d) = paths.get_mut(k).unwrap();
                 *d = curr_dist + dist;
                 p.clear();
@@ -164,6 +182,6 @@ struct Path<'a> {
 
 impl<'a> Display for Path<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: {}", self.total_flow, self.visited.join(", "))
+        write!(f, "{}: {}", self.total_flow, self.open_valves.join(", "))
     }
 }

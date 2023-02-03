@@ -1,10 +1,10 @@
-mod input;
 mod monkey;
-
 use crate::monkey::Monkey;
 
+use get_input::*;
+
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
     let rounds = 10_000;
 
     let mut monkeys: Vec<Monkey> = content

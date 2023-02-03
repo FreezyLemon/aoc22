@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let input = crate::input::get_input()?;
+    let input = get_input()?;
     let lines = input.split('\n');
     let (instructions, crates) = lines.partition::<Vec<_>, _>(|l| l.starts_with('m'));
 

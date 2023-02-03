@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
     const LINE_LEN: usize = 40;
     const LINES: usize = 6;
     const TOTAL_LEN: usize = LINE_LEN * LINES;

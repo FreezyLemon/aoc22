@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-mod input;
+use get_input::*;
 
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
 
     let rocks: HashSet<Rock> = content
         .split('\n')

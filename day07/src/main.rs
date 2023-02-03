@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-mod input;
+use get_input::*;
 
 const DIR_DELIM: &str = "/";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let content = crate::input::get_input()?;
+    let content = get_input()?;
 
     let mut file_sizes = HashMap::new();
     let mut curr_dir = String::from("/");

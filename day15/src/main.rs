@@ -1,9 +1,9 @@
 use std::{str::FromStr, convert::Infallible, collections::HashSet};
 
-mod input;
+use get_input::*;
 
 fn main() {
-    let content = crate::input::get_input().unwrap();
+    let content = get_input().unwrap();
     let y_of_concern = 2_000_000;
 
     let reports: Vec<SensorReport> = content

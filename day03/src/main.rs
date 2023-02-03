@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let inventory = crate::input::get_input()?;
+    let inventory = get_input()?;
 
     let lines = inventory.split("\n");
     let iter = ThreeLineIter { split: lines };

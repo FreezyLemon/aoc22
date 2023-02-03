@@ -1,9 +1,9 @@
 use std::collections::VecDeque;
 
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let input = crate::input::get_input()?;
+    let input = get_input()?;
     let mut input = input.chars();
     let n = 14;
 

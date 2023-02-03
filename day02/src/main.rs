@@ -1,7 +1,7 @@
-mod input;
+use get_input::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let guide = crate::input::get_input()?;
+    let guide = get_input()?;
     
     let total_score = guide
         .split("\n")

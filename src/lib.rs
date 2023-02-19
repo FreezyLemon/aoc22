@@ -1,15 +1,19 @@
-use std::{error::Error, fmt};
+use std::{error::Error, fmt, path::PathBuf, str::FromStr};
 
 pub fn get_input() -> Result<String, Box<dyn std::error::Error>> {
     // skip first arg (binary name)
-    let mut args = std::env::args().skip(1);
+    let mut args = std::env::args();
+    let bin_name = args.next().unwrap();
+    let path = PathBuf::from_str(&bin_name)?;
 
-    if let Some(arg) = args.next() {
-        let content = std::fs::read_to_string(arg)?;
-        Ok(content)
+    let input_path = if let Some(arg) = args.next() {
+        arg
     } else {
-        Err(Box::new(ArgsError))
-    }
+        // convenience
+        format!("inputs/{}.txt", path.file_name().unwrap().to_string_lossy())
+    };
+
+    Ok(std::fs::read_to_string(input_path)?)
 }
 
 #[derive(Debug)]
